@@ -15,6 +15,9 @@ import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParseListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.event.EventHandler;
+import org.camunda.bpm.engine.impl.history.handler.CompositeHistoryEventHandler;
+import org.camunda.bpm.engine.impl.history.handler.DbHistoryEventHandler;
+import org.camunda.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
@@ -254,10 +257,39 @@ public class TestCoverageProcessEngineRule extends ProcessEngineRule {
 
         final ProcessEngineConfigurationImpl processEngineConfiguration = (ProcessEngineConfigurationImpl) processEngine.getProcessEngineConfiguration();
 
+
         // Configure activities listener
 
-        final FlowNodeHistoryEventHandler historyEventHandler = (FlowNodeHistoryEventHandler) processEngineConfiguration.getHistoryEventHandler();
-        historyEventHandler.setCoverageTestRunState(coverageTestRunState);
+        HistoryEventHandler historyEventHandler = processEngineConfiguration.getHistoryEventHandler();
+
+        if (historyEventHandler instanceof FlowNodeHistoryEventHandler) {
+            FlowNodeHistoryEventHandler flowNodeHistoryEventHandler = (FlowNodeHistoryEventHandler) historyEventHandler;
+            flowNodeHistoryEventHandler.setCoverageTestRunState(coverageTestRunState);
+            processEngineConfiguration.setHistoryEventHandler(flowNodeHistoryEventHandler);
+        } else {
+
+            FlowNodeHistoryEventHandler flowNodeHistoryEventHandler = new FlowNodeHistoryEventHandler();
+            flowNodeHistoryEventHandler.setCoverageTestRunState(coverageTestRunState);
+
+            if (historyEventHandler == null || historyEventHandler instanceof DbHistoryEventHandler) {
+                processEngineConfiguration.setHistoryEventHandler(flowNodeHistoryEventHandler);
+
+            } else if (historyEventHandler instanceof CompositeHistoryEventHandler) {
+                CompositeHistoryEventHandler compositeHistoryEventHandler = (CompositeHistoryEventHandler) historyEventHandler;
+
+                compositeHistoryEventHandler.add(flowNodeHistoryEventHandler);
+                processEngineConfiguration.setHistoryEventHandler(compositeHistoryEventHandler);
+
+            } else {
+
+                CompositeHistoryEventHandler compositeHistoryEventHandler = new CompositeHistoryEventHandler();
+                compositeHistoryEventHandler.add(historyEventHandler);
+                compositeHistoryEventHandler.add(flowNodeHistoryEventHandler);
+
+                processEngineConfiguration.setHistoryEventHandler(compositeHistoryEventHandler);
+            }
+        }
+
 
         // Configure sequence flow listener
 
