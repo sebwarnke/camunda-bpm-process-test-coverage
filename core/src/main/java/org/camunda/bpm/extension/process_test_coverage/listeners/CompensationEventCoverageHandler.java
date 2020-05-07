@@ -21,8 +21,7 @@ public class CompensationEventCoverageHandler extends CompensationEventHandler {
 
     private CoverageTestRunState coverageTestRunState;
 
-    @Override
-    public void handleEvent(EventSubscriptionEntity eventSubscription, Object payload, CommandContext commandContext) {
+    public void handleEvent(EventSubscriptionEntity eventSubscription, Object payload, Object localPayload, String businessKey, CommandContext commandContext) {
 
         if (Api.Camunda.supportsCompensationEventCoverage()) {
 
@@ -49,7 +48,7 @@ public class CompensationEventCoverageHandler extends CompensationEventHandler {
 
         }
 
-        super.handleEvent(eventSubscription, payload, commandContext);
+        super.handleEvent(eventSubscription, payload, localPayload, businessKey, commandContext);
 
     }
 

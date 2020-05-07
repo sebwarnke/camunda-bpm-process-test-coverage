@@ -3,10 +3,12 @@ package org.camunda.bpm.extension.process_test_coverage.junit.rules;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParseListener;
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.camunda.bpm.engine.impl.event.EventHandler;
+import org.camunda.bpm.engine.impl.history.handler.HistoryEventHandler;
 import org.camunda.bpm.extension.process_test_coverage.listeners.CompensationEventCoverageHandler;
 import org.camunda.bpm.extension.process_test_coverage.listeners.FlowNodeHistoryEventHandler;
 import org.camunda.bpm.extension.process_test_coverage.listeners.PathCoverageParseListener;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,8 +38,9 @@ public class ProcessCoverageConfigurator {
 
     private static void initializeFlowNodeHandler(ProcessEngineConfigurationImpl configuration) {
         final FlowNodeHistoryEventHandler historyEventHandler = new FlowNodeHistoryEventHandler();
-        configuration.setHistoryEventHandler(historyEventHandler);
-
+//        configuration.setHistoryEventHandler(historyEventHandler);
+        configuration.setCustomHistoryEventHandlers(Arrays.asList((HistoryEventHandler)historyEventHandler));
+        configuration.setEnableDefaultDbHistoryEventHandler(false);
     }
 
     private static void initializeCompensationEventHandler(ProcessEngineConfigurationImpl configuration) {
